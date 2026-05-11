@@ -1,7 +1,10 @@
 
+
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
 
 const app = express();
@@ -15,6 +18,7 @@ const db = mysql.createConnection({
     database: "level-5-sod"
 });
 
+
 db.connect((err) => {
     if (err) {
         console.error("database failed💔", err);
@@ -23,47 +27,72 @@ db.connect((err) => {
     }
 });
 
-//get checking health of server
+//middlewares
 
-app.get('/', (req, res) => {
-    res.send("Server is running")
-});
-app.get("/students", (req, res) => {
-    db.query("SELECT * FROM students ", (err, result) => {
-        if (err) {
-            console.error("fail")
+//verifying token
+const verifyToken =()=>{
+
+}
+
+const checkRole=()=>{
+
+}
+//api//register
+app.post('/api/register',async(req,res)=>{
+    const {name,email,password,role}= req.body;
+    //check if user exists
+    const myQuery = 'SELECT * FROM users where email = ?';
+    db.query(myQuery,[email],async(err,results)=>{
+        if(err){
+            return res.status(500).json({message: 'Invalid user',err})
         }
-        else {
-            res.send(result)
+        if(results.length>0){
+            return res.status(404).json({message: 'user already exists'})
         }
-    }
-    ) 
+        const hashedPassword = await bcrypt.hash(password,10);
+
+        const insertQuery = 'INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)';
+        db.query(insertQuery,[name,email,hashedPassword,role],async(err,results)=>{
+            if(err){
+                return res.status(500).json({message: 'failed to create user',err})
+            }
+            return res.status(200).json({message: 'created a user',results});
+        })
+    })
 })
-
-
-app.get("/employees", (req, res) => {
-    db.query("SELECT * FROM employees ", (err, result) => {
-        if (err) {
-            console.error("fail")
+//api/login
+app.post('/api/login',async(req,res)=>{
+    const {email,password} = req.body;
+    //check if user exists
+    const myQuery = 'SELECT * FROM users where email = ?';
+    db.query(myQuery,[email],async(err,results)=>{
+        if(err){
+            return res.status(500).json({message: 'db network error',err})
         }
-        else {
-            res.send(result)
+        if(results.length=== 0){
+            return res.status(501).json({message:'user with email not found',err})
         }
-    }
-    ) 
+        //compare password
+        const isPasswordValid = await bcrypt.compare(password,results[0].password);
+        if(!isPasswordValid){
+            return res.status(501).json({message:'Invalid password',err})
+        }
+        //generating token
+        const token = await jwt.sign({
+            id: results[0].id,
+            email: results[0].email,  
+            role: results[0].role
+        },'secretKey',{expiresIn: '1d'})
+         if(!token){
+            return res.status(501).json({message:'No token provided, plz try again',err})
+        }
+
+        return res.status(200).json({message:'Login Successfully',token})
+
+    })
 })
-
-app.post("/employees", (req, res) => {
-    const { empname,empage,empsalary,empdept } = req.body;
-    const sql = "INSERT INTO employees(empname,empage,empsalary,empdept)VALUE(?,?,?,?)";
-    db.querry(sql,)
-});
-
-app.post("/students", (req, res) => {
-    const { name, email } = req.body;
-    const sql = "INSERT INTO students(name,email)VALUE(?,?)";
-    db.querry(sql,)
-});
+//api/logout
+//api/me
 
 //start server
 
