@@ -30,24 +30,13 @@ db.connect((err) => {
 //middlewares
 
 //verifying token
-const verifyToken =async(req,res,next)=>{
-    const token = req.headers.authorization;
-    if(!token){
-        return res.status(501).json({message: 'No token provided'})
-    }
-    const actualToken = token.split(" ")[1];
-    const realToken = await jwt.verify(actualToken,'secretKey');
-    req.user = realToken;
-    next();
+const verifyToken =()=>{
+    const auth = req.headers.authorization
+
 }
 
-const checkRole=(...roles)=>{
-    return (req,res,next)=>{
-        if(!roles.includes(req.user.role)){
-            return res.status(403).json({message: 'Access denied'})
-        }
-        next()
-    }
+const checkRole=()=>{
+
 }
 //api//register
 app.post('/api/register',async(req,res)=>{
@@ -109,7 +98,7 @@ app.post('/api/logout',(req,res)=>{
 })
 
 //api/me
-app.get('/api/me',verifyToken,async(req,res)=>{
+app.get('/api/me',(req,res)=>{
     const id = req.user.id;
     //
     const myQuery = 'SELECT id,name,email,role from users where id =?';
@@ -125,66 +114,6 @@ app.get('/api/me',verifyToken,async(req,res)=>{
     })
 })
 
-// CRUD OPERATION FOR PRODUCTS
-
-app.get('/api/products',async(req,res)=>{
-    const myquery= 'SELECT * FROM products'
-    db.query(myquery ,(err,results)=>{
-        if(err){
-            return res.status(200).json({message: 'server error',err})
-        }
-        return res.status(200).json({message: 'got products',results})
-    })
-})
-
-//creating produts
-app.post('/api/products', async(req,res) =>{
-    const {name,price,category} = req.body
-    const myquery = 'INSERT INTO products(name,price,category) VALUES(?,?,?)'
-    db.query(myquery, [name,price,category], (err,results) =>{
-        if(err){
-            return res.status(500).json({message: 'cannot create user',err})
-        }
-        return res.status(200).json({message: 'product created',results})
-    })
-})
-
-//get by id
-
-app.get('/api/products/:id', async(req,res) =>{
-    const id= req.params.id
-    const myquery= 'SELECT * FROM products WHERE id=?'
-    db.query(myquery,[id], (err,results) =>{
-        if (err){
-            return res.status(500).json({message: 'id not found',err})
-        }
-        return res.status(200).json({message: 'product by id found',results})
-    })
-})
-// UPDATE PRODUCT
-
-app.put('/api/products/:id', async(req,res) =>{
-    const {name,price,category} = req.body
-    const id= req.params.id
-    const myquery ='UPDATE products SET name=? , price=? , category=? WHERE id=?'
-    db.query(myquery,[name,price,category,id], (err,results) =>{
-        if (err) {
-            return res.status(500).json({message: 'cannot update product',err})
-        }
-        return res.status(200).json({message: 'product updated',results})
-    })
-})
-//DELETE PRODUCT
-app.delete('/api/products/:id', async(req,res) =>{
-    const id= req.params.id
-    const myquery='DELETE FROM products WHERE id=?'
-    db.query(myquery,[id], (err,results) => {
-        if (err) {
-            return res.status(500).json({message: 'cannot delete product',err})
-        }
-        return res.status(200).json({message: 'product deleted',results})
-    })
-})
 //start server
 
 app.listen(5000, () => {

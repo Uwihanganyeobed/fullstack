@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.navv{
+    align-items: center;
+    text-align: center;
+
+    border: 40px;
+    /* background-color: black; */
+}
