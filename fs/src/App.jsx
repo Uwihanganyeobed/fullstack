@@ -10,8 +10,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 export default function App() {
   return (
     <BrowserRouter>
-      <div>
-        <Navbar />;
+      <div style={styles.app}>
+        <Navbar />
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/login' element={<Login />} />
@@ -24,4 +24,6 @@ export default function App() {
   )
 }
 
-
+const styles = {
+  app: { fontFamily: 'Arial, sans-serif', color: '#111', minHeight: '100vh', background: '#f8fafc' }
+}
