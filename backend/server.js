@@ -27,6 +27,9 @@ db.connect((err) => {
     }
 });
 
+app.get('/',(req,res)=>{
+    res.send('hello')
+})
 //middlewares
 
 //verifying token
@@ -138,7 +141,7 @@ app.get('/api/products',async(req,res)=>{
 })
 
 //creating produts
-app.post('/api/products', async(req,res) =>{
+app.post('/api/products',verifyToken,checkRole('admin'), async(req,res) =>{
     const {name,price,category} = req.body
     const myquery = 'INSERT INTO products(name,price,category) VALUES(?,?,?)'
     db.query(myquery, [name,price,category], (err,results) =>{
@@ -151,7 +154,7 @@ app.post('/api/products', async(req,res) =>{
 
 //get by id
 
-app.get('/api/products/:id', async(req,res) =>{
+app.get('/api/products/:id',verifyToken, async(req,res) =>{
     const id= req.params.id
     const myquery= 'SELECT * FROM products WHERE id=?'
     db.query(myquery,[id], (err,results) =>{
@@ -163,7 +166,7 @@ app.get('/api/products/:id', async(req,res) =>{
 })
 // UPDATE PRODUCT
 
-app.put('/api/products/:id', async(req,res) =>{
+app.put('/api/products/:id',verifyToken,checkRole('admin'), async(req,res) =>{
     const {name,price,category} = req.body
     const id= req.params.id
     const myquery ='UPDATE products SET name=? , price=? , category=? WHERE id=?'
@@ -175,7 +178,7 @@ app.put('/api/products/:id', async(req,res) =>{
     })
 })
 //DELETE PRODUCT
-app.delete('/api/products/:id', async(req,res) =>{
+app.delete('/api/products/:id',verifyToken,checkRole('admin'), async(req,res) =>{
     const id= req.params.id
     const myquery='DELETE FROM products WHERE id=?'
     db.query(myquery,[id], (err,results) => {
